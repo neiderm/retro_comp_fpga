@@ -33,14 +33,20 @@ use IEEE.STD_LOGIC_1164.ALL;
 
 entity soc_t80_top is
     Port ( clk : in STD_LOGIC;
+          reset: in STD_LOGIC;
             sw : in STD_LOGIC_VECTOR(15 downto 0);
            led : out STD_LOGIC_VECTOR(15 downto 0));
 end soc_t80_top;
 
 architecture Behavioral of soc_t80_top is
-
+  signal n_reset : STD_LOGIC := not reset;
 begin
-
-    led <= sw;
-
+  ledsproc : process (n_reset, sw)
+  begin
+    if (n_reset = '0') then
+      led <= (others => '0');
+    else
+      led <= sw;
+    end if;
+  end process ledsproc;
 end Behavioral;
