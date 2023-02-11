@@ -3,37 +3,25 @@
    <wave_state>
    </wave_state>
    <db_ref_list>
-      <db_ref path="cfg_tb_soc_t80_top_behav.wdb" id="1">
+      <db_ref path="tb_soc_t80_top_behav.wdb" id="1">
          <top_modules>
             <top_module name="tb_soc_t80_top" />
          </top_modules>
       </db_ref>
    </db_ref_list>
    <zoom_setting>
-      <ZoomStartTime time="0fs"></ZoomStartTime>
-      <ZoomEndTime time="31000001fs"></ZoomEndTime>
-      <Cursor1Time time="31000000fs"></Cursor1Time>
+      <ZoomStartTime time="58500000fs"></ZoomStartTime>
+      <ZoomEndTime time="109500001fs"></ZoomEndTime>
+      <Cursor1Time time="101000000fs"></Cursor1Time>
    </zoom_setting>
    <column_width_setting>
       <NameColumnWidth column_width="177"></NameColumnWidth>
-      <ValueColumnWidth column_width="120"></ValueColumnWidth>
+      <ValueColumnWidth column_width="112"></ValueColumnWidth>
    </column_width_setting>
-   <WVObjectSize size="10" />
-   <wvobject type="logic" fp_name="/tb_soc_t80_top/reset">
-      <obj_property name="ElementShortName">reset</obj_property>
-      <obj_property name="ObjectShortName">reset</obj_property>
-   </wvobject>
+   <WVObjectSize size="6" />
    <wvobject type="logic" fp_name="/tb_soc_t80_top/dut/reset_l">
       <obj_property name="ElementShortName">reset_l</obj_property>
       <obj_property name="ObjectShortName">reset_l</obj_property>
-   </wvobject>
-   <wvobject type="logic" fp_name="/tb_soc_t80_top/clk">
-      <obj_property name="ElementShortName">clk</obj_property>
-      <obj_property name="ObjectShortName">clk</obj_property>
-   </wvobject>
-   <wvobject type="logic" fp_name="/tb_soc_t80_top/dut/u_clocks/o_clk_div2">
-      <obj_property name="ElementShortName">o_clk_div2</obj_property>
-      <obj_property name="ObjectShortName">o_clk_div2</obj_property>
    </wvobject>
    <wvobject type="logic" fp_name="/tb_soc_t80_top/dut/u_clocks/o_clk_div4">
       <obj_property name="ElementShortName">o_clk_div4</obj_property>
@@ -43,20 +31,16 @@
       <obj_property name="ElementShortName">o_clk_div8</obj_property>
       <obj_property name="ObjectShortName">o_clk_div8</obj_property>
    </wvobject>
-   <wvobject type="logic" fp_name="/tb_soc_t80_top/dut/u_clocks/o_clk_div16">
-      <obj_property name="ElementShortName">o_clk_div16</obj_property>
-      <obj_property name="ObjectShortName">o_clk_div16</obj_property>
-   </wvobject>
    <wvobject type="logic" fp_name="/tb_soc_t80_top/dut/clk_cpu">
       <obj_property name="ElementShortName">clk_cpu</obj_property>
       <obj_property name="ObjectShortName">clk_cpu</obj_property>
    </wvobject>
-   <wvobject type="array" fp_name="/tb_soc_t80_top/led">
-      <obj_property name="ElementShortName">led[15:0]</obj_property>
-      <obj_property name="ObjectShortName">led[15:0]</obj_property>
+   <wvobject type="logic" fp_name="/tb_soc_t80_top/dut/Hsync">
+      <obj_property name="ElementShortName">Hsync</obj_property>
+      <obj_property name="ObjectShortName">Hsync</obj_property>
    </wvobject>
-   <wvobject type="array" fp_name="/tb_soc_t80_top/sw">
-      <obj_property name="ElementShortName">sw[15:0]</obj_property>
-      <obj_property name="ObjectShortName">sw[15:0]</obj_property>
+   <wvobject type="logic" fp_name="/tb_soc_t80_top/dut/Vsync">
+      <obj_property name="ElementShortName">Vsync</obj_property>
+      <obj_property name="ObjectShortName">Vsync</obj_property>
    </wvobject>
 </wave_config>
