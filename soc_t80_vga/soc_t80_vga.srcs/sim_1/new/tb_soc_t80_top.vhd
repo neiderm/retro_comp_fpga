@@ -37,9 +37,10 @@ architecture tb of tb_soc_t80_top is
               led   : out std_logic_vector (15 downto 0));
     end component;
 
-    signal clk   : std_logic;
+    signal clk   : std_logic := '0'; -- clock must be in known state for sim to start!
     signal reset : std_logic;
-    signal sw    : std_logic_vector (15 downto 0);
+     -- initial condition of sw must be in known state!
+    signal sw    : std_logic_vector (15 downto 0) := "0000101001011010"; --  (others => '0');
     signal led   : std_logic_vector (15 downto 0);
 
     constant TbPeriod : time := 1000 ns; -- EDIT Put right period here
@@ -48,43 +49,47 @@ architecture tb of tb_soc_t80_top is
 
 begin
 
+    -- Reset and clock
+    clk <= NOT clk AFTER 5ns;
+    reset <= '1', '0' AFTER 10ns;
+
     dut : soc_t80_top
     port map (clk   => clk,
               reset => reset,
               sw    => sw,
               led   => led);
 
-    -- Clock generation
-    TbClock <= not TbClock after TbPeriod/2 when TbSimEnded /= '1' else '0';
+--    -- Clock generation
+--    TbClock <= not TbClock after TbPeriod/2 when TbSimEnded /= '1' else '0';
 
-    -- EDIT: Check that clk is really your main clock signal
-    clk <= TbClock;
+--    -- EDIT: Check that clk is really your main clock signal
+--    clk <= TbClock;
 
-    stimuli : process
-    begin
-        -- EDIT Adapt initialization as needed
-        sw <= (others => '0');
+--    stimuli : process
+--    begin
+--        -- EDIT Adapt initialization as needed
+--        sw <= (others => '0');
 
-        -- Reset generation
-        -- EDIT: Check that reset is really your reset signal
-        reset <= '1';
-        wait for 100 ns;
-        reset <= '0';
-        wait for 100 ns;
+--        -- Reset generation
+--        -- EDIT: Check that reset is really your reset signal
+--        reset <= '1';
+--        wait for 100 ns;
+--        reset <= '0';
+--        wait for 100 ns;
 
-        -- EDIT Add stimuli here
-        wait for 100 * TbPeriod;
+--        -- EDIT Add stimuli here
+--        wait for 100 * TbPeriod;
 
-        -- Stop the clock and hence terminate the simulation
-        TbSimEnded <= '1';
-        wait;
-    end process;
+--        -- Stop the clock and hence terminate the simulation
+--        TbSimEnded <= '1';
+--        wait;
+--    end process;
 
 end tb;
 
--- Configuration block below is required by some simulators. Usually no need to edit.
+---- Configuration block below is required by some simulators. Usually no need to edit.
 
-configuration cfg_tb_soc_t80_top of tb_soc_t80_top is
-    for tb
-    end for;
-end cfg_tb_soc_t80_top;
+--configuration cfg_tb_soc_t80_top of tb_soc_t80_top is
+--    for tb
+--    end for;
+--end cfg_tb_soc_t80_top;
