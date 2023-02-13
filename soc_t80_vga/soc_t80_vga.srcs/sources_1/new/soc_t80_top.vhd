@@ -54,8 +54,11 @@ architecture Behavioral of soc_t80_top is
 
     signal video_on : STD_LOGIC;
     signal pixel_x, pixel_y : INTEGER;
+    signal vgss        : STD_LOGIC_VECTOR(1 downto 0); -- video generator source select to vgen mux
 
     signal rgb_out_reg : STD_LOGIC_VECTOR(11 downto 0); --register the RGB output signals 
+    signal rgb_reg_0   : STD_LOGIC_VECTOR(11 downto 0);
+    signal rgb_reg_1   : STD_LOGIC_VECTOR(11 downto 0);
 
 begin
     --------------------------------------------------
@@ -98,22 +101,49 @@ begin
             n_sync => open
         );
 
-    -- rgb register gated onto VGA signals only during video on time
-    vgaRed <= (rgb_out_reg(11 downto 8)) when video_on = '1' else (others => '0');
-    vgaGreen <= (rgb_out_reg(7 downto 4)) when video_on = '1' else (others => '0');
-    vgaBlue <= (rgb_out_reg(3 downto 0)) when video_on = '1' else (others => '0');
+    u_video_mux : entity work.mux		
+        port map(
+            s  => vgss,
+            I0 => rgb_reg_0,
+            I1 => rgb_reg_1,  -- sw(11 downto 0)
+            I2 => (others => '0'),
+            I3 => (others => '0'),
+            o  => rgb_out_reg
+        );
+
+    -- Needs a reset to cleanup warnings if a RAMB is used
+    bmp_img_gen : entity work.hw_image_generator
+        port map(
+--            reset_n => reset_l, -- reset required to RAMB36E1 for bmp gen
+--            clk     => clk_vga, -- pixel clock
+            disp_ena => '1', -- video_on ... not really needed, video on is applied to final mux output 
+            row      => pixel_y,
+            column   => pixel_x,
+            red      => rgb_reg_0(11 downto 8),
+            green    => rgb_reg_0(7 downto 4),
+            blue     => rgb_reg_0(3 downto 0)
+            );
+
+    rgb_reg_1 <= sw(11 downto 0);
 
     --------------------------------------------------
     -- drive outputs, RGB, LED etc.
     --------------------------------------------------
-    rgb_out_reg <= sw(11 downto 0);
+    -- video generator source select from switches
+    vgss      <= sw(15 downto 14);
 
+    -- rgb register gated onto VGA signals only during video on time
+    vgaRed    <= (rgb_out_reg(11 downto 8)) when video_on = '1' else (others => '0');
+    vgaGreen  <= (rgb_out_reg(7 downto 4))  when video_on = '1' else (others => '0');
+    vgaBlue   <= (rgb_out_reg(3 downto 0))  when video_on = '1' else (others => '0');
+
+    -- LEDs
     IO_process : process (reset_l, sw) --clk_vga
     begin
         if (reset_l = '0') then
-            led <= (others => '0');
+            led(11 downto 0) <= (others => '0');
         else
-            led(11 downto 0) <= sw;
+            led(11 downto 0) <= sw(11 downto 0);
         end if;
     end process IO_process;
 
