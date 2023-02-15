@@ -40,7 +40,7 @@ begin
 	    when "01" =>	O <= I1;
 	    when "10" =>	O <= I2;
 	    when "11" =>	O <= I3;
-	    when others =>	O <= "ZZZ";
+	    when others =>	O <= "ZZZZZZZZZZZZ";
 	end case;
 
     end process;
