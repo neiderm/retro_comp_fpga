@@ -24,12 +24,14 @@
 
 LIBRARY ieee;
 USE ieee.std_logic_1164.all;
+use IEEE.numeric_std.all; --UNSIGNED
 
 ENTITY hw_image_generator IS
   GENERIC(
     pixels_y :  INTEGER := 240;   --row that first color will persist until
     pixels_x :  INTEGER := 320);  --column that first color will persist until
   PORT(
+    clk_in   :  IN   STD_LOGIC;
     disp_ena :  IN   STD_LOGIC;  --display enable ('1' = display time, '0' = blanking time)
     row      :  IN   INTEGER;    --row pixel coordinate
     column   :  IN   INTEGER;    --column pixel coordinate
@@ -39,24 +41,47 @@ ENTITY hw_image_generator IS
 END hw_image_generator;
 
 ARCHITECTURE behavior OF hw_image_generator IS
+    signal rgb_out  : STD_LOGIC_VECTOR(11 DOWNTO 0);
+    signal pix_addr : UNSIGNED(6 downto 0);          -- temp address to read from ROM
+    signal data_reg : STD_LOGIC_VECTOR(19 DOWNTO 0); -- temp reg for data from ROM
 BEGIN
-  PROCESS(disp_ena, row, column)
-  BEGIN
 
+--  process(clk_in, pix_addr) --don't know why it should be sensitive to pix_addr but is a warning
+--  begin
+--    if (clk_in'EVENT and clk_in = '1') then 
+--      pix_addr <= pix_addr + 1;
+--    end if;
+--  end process;
+--  pix_addr <= to_unsigned(column, pix_addr'length);
+
+  pix_addr <= to_unsigned(row, pix_addr'length);
+
+  data_reg(11 downto 0) <= rgb_out;
+
+  u_img_rom: entity work.roms_signal
+  port map (
+          clk  => clk_in,
+          en   => disp_ena,
+          addr =>  std_logic_vector(pix_addr),
+          data => data_reg
+  );
+
+  PROCESS(disp_ena, row, column, rgb_out)
+  BEGIN
     IF(disp_ena = '1') THEN        --display time
       IF(row < pixels_y AND column < pixels_x) THEN
-        red <= (OTHERS => '0');
-        green  <= (OTHERS => '0');
-        blue <= (OTHERS => '1');
+        red   <= rgb_out(11 downto 8);
+        green <= rgb_out(7 downto 4);
+        blue  <= rgb_out(3 downto 0);
       ELSE
-        red <= (OTHERS => '1');
-        green  <= (OTHERS => '1');
-        blue <= (OTHERS => '0');
+        red   <= (OTHERS => '1');
+        green <= (OTHERS => '1');
+        blue  <= (OTHERS => '0');
       END IF;
     ELSE                           --blanking time
-      red <= (OTHERS => '0');
+      red   <= (OTHERS => '0');
       green <= (OTHERS => '0');
-      blue <= (OTHERS => '0');
+      blue  <= (OTHERS => '0');
     END IF;
   
   END PROCESS;
