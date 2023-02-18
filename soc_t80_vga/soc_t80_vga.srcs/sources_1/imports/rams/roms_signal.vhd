@@ -6,19 +6,21 @@
 --
 library ieee; 
 use ieee.std_logic_1164.all; 
-use ieee.std_logic_unsigned.all;
+--use ieee.std_logic_unsigned.all;
+use ieee.numeric_std.all;
 
 entity roms_signal is 
     port (
         clk  : in std_logic; 
         en   : in std_logic; 
-        addr : in std_logic_vector(6 downto 0); 
+        addr : in std_logic_vector(6 downto 0);
         data : out std_logic_vector(19 downto 0)); 
 end roms_signal; 
 
 architecture syn of roms_signal is 
 
     type rom_type is array (0 to 127) of std_logic_vector (19 downto 0); 
+
     signal ROM : rom_type := (
         X"0200A", X"00300", X"08101", X"04000", X"08601", X"0233A", X"00300", X"08602", 
         X"02310", X"0203B", X"08300", X"04002", X"08201", X"00500", X"04001", X"02500", 
@@ -38,12 +40,18 @@ architecture syn of roms_signal is
         X"04078", X"01110", X"02500", X"02500", X"0030D", X"02341", X"08201", X"0410D"
     ); 
 
+    signal pix_addr : UNSIGNED(6 downto 0);          -- temp address to read from ROM
+    
 begin
     process (clk) 
     begin
         if (clk'EVENT and clk = '1') then 
+
+            pix_addr <= pix_addr + 1;
+
             if (en = '1') then 
-                data <= ROM(conv_integer(addr)); 
+--                data <= ROM(to_integer(unsigned(addr)));
+                data <= ROM(to_integer(pix_addr));
             end if; 
         end if; 
     end process;
