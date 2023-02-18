@@ -42,29 +42,20 @@ END hw_image_generator;
 
 ARCHITECTURE behavior OF hw_image_generator IS
     signal rgb_out  : STD_LOGIC_VECTOR(11 DOWNTO 0);
-    signal pix_addr : UNSIGNED(6 downto 0);          -- temp address to read from ROM
-    signal data_reg : STD_LOGIC_VECTOR(19 DOWNTO 0); -- temp reg for data from ROM
 BEGIN
 
---  process(clk_in, pix_addr) --don't know why it should be sensitive to pix_addr but is a warning
---  begin
---    if (clk_in'EVENT and clk_in = '1') then 
---      pix_addr <= pix_addr + 1;
---    end if;
---  end process;
---  pix_addr <= to_unsigned(column, pix_addr'length);
-
-  pix_addr <= to_unsigned(row, pix_addr'length);
-
-  data_reg(11 downto 0) <= rgb_out;
-
   u_img_rom: entity work.roms_signal
-  port map (
-          clk  => clk_in,
-          en   => disp_ena,
-          addr =>  std_logic_vector(pix_addr),
-          data => data_reg
-  );
+    generic map(
+      imgRow0 => 120,
+      imgCol0 => 160
+    )
+    port map (
+      clk  => clk_in,
+      en   => disp_ena,
+      row  => row,
+      col  => column,
+      data => rgb_out
+    );
 
   PROCESS(disp_ena, row, column, rgb_out)
   BEGIN
