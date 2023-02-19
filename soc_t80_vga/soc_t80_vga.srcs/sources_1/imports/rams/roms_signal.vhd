@@ -14,6 +14,7 @@ entity roms_signal is
         imgRow0 : integer := 0;
         imgCol0 : integer := 0);
     port (
+        reset_n : in std_logic;
         clk  : in std_logic; 
         en   : in std_logic; 
         row  : in  integer;
@@ -50,11 +51,17 @@ architecture syn of roms_signal is
     signal pix_addr : UNSIGNED(6 downto 0);
 
 begin
-    process (clk)
+    process (clk, reset_n)
     begin
-        if (clk'EVENT and clk = '1') then 
+
+        if (reset_n = '0') then
+
+            data <= (others => '0');
+
+        elsif (clk'EVENT and clk = '1') then 
 
             if (en = '1') then 
+
                 if (row < imgRow0) then
                     pix_addr <= to_unsigned(0, pix_addr'length);
                 end if;

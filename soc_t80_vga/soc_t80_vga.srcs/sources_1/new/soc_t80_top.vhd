@@ -111,10 +111,9 @@ begin
             o  => rgb_out_reg
         );
 
-    -- Needs a reset to cleanup warnings if a RAMB is used
     bmp_img_gen : entity work.hw_image_generator
         port map(
---            reset_n => reset_l, -- reset required to RAMB36E1 for bmp gen
+            reset_in => reset_l, -- reset required to synchronize RAMB
             clk_in   => clk_vga, -- pixel clock
             disp_ena => '1', -- video_on ... tbd, enable is applied to final mux output 
             row      => pixel_y,
