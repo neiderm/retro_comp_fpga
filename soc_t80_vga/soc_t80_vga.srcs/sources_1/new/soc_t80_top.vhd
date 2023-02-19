@@ -23,7 +23,7 @@ use IEEE.STD_LOGIC_1164.all;
 
 -- Uncomment the following library declaration if using
 -- arithmetic functions with Signed or Unsigned values
---use IEEE.NUMERIC_STD.ALL;
+use IEEE.NUMERIC_STD.ALL;
 
 -- Uncomment the following library declaration if instantiating
 -- any Xilinx leaf cells in this code.
@@ -59,6 +59,10 @@ architecture Behavioral of soc_t80_top is
     signal rgb_out_reg : STD_LOGIC_VECTOR(11 downto 0); --register the RGB output signals 
     signal rgb_reg_0   : STD_LOGIC_VECTOR(11 downto 0);
     signal rgb_reg_1   : STD_LOGIC_VECTOR(11 downto 0);
+    signal rgb_reg_2   : STD_LOGIC_VECTOR(11 downto 0);
+
+    signal rgb_reg_32  : STD_LOGIC_VECTOR(31 downto 0); --register output from bmp loader 
+    signal pix_addr    : UNSIGNED(5 downto 0) := to_unsigned(0, 6);  -- tmp 
 
 begin
     --------------------------------------------------
@@ -105,13 +109,28 @@ begin
         port map(
             s  => vgss,
             I0 => rgb_reg_0,
-            I1 => rgb_reg_1,  -- sw(11 downto 0)
-            I2 => (others => '0'),
+            I1 => rgb_reg_1,
+            I2 => rgb_reg_2,
             I3 => (others => '0'),
             o  => rgb_out_reg
         );
 
-    bmp_img_gen : entity work.hw_image_generator
+    --set RGB color on whole screen
+    rgb_reg_2 <= sw(11 downto 0);
+
+    --set RGB color on per-pixel basis reading incrementally from the image ROM
+    u_img_rom: entity work.rams_20c
+        port map (
+            clk  => clk_vga,
+            we   => '0',
+            addr => std_logic_vector(pix_addr), --tmp
+            din  => (others => '0'), --read only
+            dout => rgb_reg_32
+        );
+    rgb_reg_1 <= rgb_reg_32(11 downto 0);
+
+    --set a RGB test pattern from the image ROM at a specific location on the screen
+    u_bmp_img_gen : entity work.hw_image_generator
         port map(
             reset_in => reset_l, -- reset required to synchronize RAMB
             clk_in   => clk_vga, -- pixel clock
@@ -123,7 +142,20 @@ begin
             blue     => rgb_reg_0(3 downto 0)
             );
 
-    rgb_reg_1 <= sw(11 downto 0);
+    --------------------------------------------------
+    -- pixel address process (tmp, tbd?)
+    --------------------------------------------------
+    pix_addr <= to_unsigned(pixel_x, pix_addr'length);
+
+--    p_pix_addr : process (reset_l, clk_vga)
+--    begin
+--        if (reset_l = '0') then
+--            pix_addr <= to_unsigned(0, pix_addr'length);
+--        elsif (rising_edge(clk_vga)) then
+--            pix_addr <= pix_addr + 1;
+--        end if;
+--    end process p_pix_addr;
+
 
     --------------------------------------------------
     -- drive outputs, RGB, LED etc.
