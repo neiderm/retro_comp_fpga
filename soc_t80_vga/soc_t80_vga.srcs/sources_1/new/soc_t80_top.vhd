@@ -36,9 +36,9 @@ entity soc_t80_top is
         reset : in STD_LOGIC;
         sw : in STD_LOGIC_VECTOR(15 downto 0);
 
-        vgaRed : out STD_LOGIC_VECTOR(3 downto 0);
+        vgaRed   : out STD_LOGIC_VECTOR(3 downto 0);
         vgaGreen : out STD_LOGIC_VECTOR(3 downto 0);
-        vgaBlue : out STD_LOGIC_VECTOR(3 downto 0);
+        vgaBlue  : out STD_LOGIC_VECTOR(3 downto 0);
         Hsync : out STD_LOGIC;
         Vsync : out STD_LOGIC;
 
@@ -56,14 +56,10 @@ architecture Behavioral of soc_t80_top is
     signal pixel_x, pixel_y : INTEGER;
     signal vgss        : STD_LOGIC_VECTOR(1 downto 0); -- video generator source select to vgen mux
 
-    signal rgb_out_reg : STD_LOGIC_VECTOR(11 downto 0); --register the RGB output signals 
+    signal rgb_out_reg : STD_LOGIC_VECTOR(11 downto 0); -- register the RGB output signals 
     signal rgb_reg_0   : STD_LOGIC_VECTOR(11 downto 0);
     signal rgb_reg_1   : STD_LOGIC_VECTOR(11 downto 0);
     signal rgb_reg_2   : STD_LOGIC_VECTOR(11 downto 0);
-
-    signal rgb_reg_32  : STD_LOGIC_VECTOR(31 downto 0); --register output from bmp loader 
-    signal pix_addr    : UNSIGNED(5 downto 0) := to_unsigned(0, 6);  -- tmp 
-
 begin
     --------------------------------------------------
     -- drive test output pins to verify clock rates
@@ -115,21 +111,25 @@ begin
             o  => rgb_out_reg
         );
 
-    --set RGB color on whole screen
+    -- set RGB color on whole screen
     rgb_reg_2 <= sw(11 downto 0);
 
-    --set RGB color on per-pixel basis reading incrementally from the image ROM
+    -- set RGB image from the bitmap image ROM
     u_img_rom: entity work.rams_20c
+        generic map(
+            FileName => "rams_20c.data",
+            imgRow0 => 120,
+            imgCol0 => 180
+        )
         port map (
-            clk  => clk_vga,
-            we   => '0',
-            addr => std_logic_vector(pix_addr), --tmp
-            din  => (others => '0'), --read only
-            dout => rgb_reg_32
+            reset_n => reset_l, -- reset required to synchronize RAMB
+            clk     => clk_vga,
+            row     => pixel_y,
+            col     => pixel_x,
+            dout    => rgb_reg_1
         );
-    rgb_reg_1 <= rgb_reg_32(11 downto 0);
 
-    --set a RGB test pattern from the image ROM at a specific location on the screen
+    -- set RGB test pattern from the image ROM at a specific location on the screen
     u_bmp_img_gen : entity work.hw_image_generator
         port map(
             reset_in => reset_l, -- reset required to synchronize RAMB
@@ -141,21 +141,6 @@ begin
             green    => rgb_reg_0(7 downto 4),
             blue     => rgb_reg_0(3 downto 0)
             );
-
-    --------------------------------------------------
-    -- pixel address process (tmp, tbd?)
-    --------------------------------------------------
-    pix_addr <= to_unsigned(pixel_x, pix_addr'length);
-
---    p_pix_addr : process (reset_l, clk_vga)
---    begin
---        if (reset_l = '0') then
---            pix_addr <= to_unsigned(0, pix_addr'length);
---        elsif (rising_edge(clk_vga)) then
---            pix_addr <= pix_addr + 1;
---        end if;
---    end process p_pix_addr;
-
 
     --------------------------------------------------
     -- drive outputs, RGB, LED etc.
