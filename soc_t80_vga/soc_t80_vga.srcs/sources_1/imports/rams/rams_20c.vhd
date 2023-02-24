@@ -14,7 +14,7 @@ entity rams_20c is
     generic (
         imgRow0 : integer := 0;
         imgCol0 : integer := 0;
-        FileName : string;
+        FileName : string := "rgb.bmp.dat"; -- override default file name in component instantiation 
         VGA_BITS : integer := 12  -- VGA bus width
     );
     port (
@@ -30,7 +30,8 @@ architecture syn of rams_20c is
     --
     -- (1) load bitmap header
     --
-    type header_type is array (0 to 53) of std_logic_vector (7 downto 0);
+    subtype byte_type is std_logic_vector(7 downto 0);
+    type header_type is array (0 to 53) of byte_type;
 
     type bmp_info_type is record
         width  : integer;
@@ -51,7 +52,7 @@ architecture syn of rams_20c is
             hread (RamFileLine, header(i)); -- requires VHDL 2008
         end loop;
         file_close(bmp_file);
-        -- extract image dimensions
+        -- extract image dimensions (see help here https://vhdlwhiz.com/read-bmp-file/)
         bmp_dims.width := to_integer(unsigned(header(18))) + 
                           to_integer(unsigned(header(19))) * 2 ** 8 + 
                           to_integer(unsigned(header(20))) * 2 ** 16 + 
@@ -63,17 +64,18 @@ architecture syn of rams_20c is
         return bmp_dims;
     end function;
 
-    constant bmp_hdr : bmp_info_type := ReadHeaderFromFile("rgb.bmp.dat"); -- FileName
-
+    constant bmp_hdr : bmp_info_type := ReadHeaderFromFile(FileName);
     --
     -- (2) load image data
     --
-    constant bmp_img_sz : integer := bmp_hdr.height * bmp_hdr.width * 3 + 1; -- temp 1 byte EOF
-    subtype byte_type is std_logic_vector(7 downto 0);
-    type bmp_img_dat_type is array (0 to bmp_img_sz-1) of byte_type;
+    constant bmp_img_sz : integer := bmp_hdr.height * bmp_hdr.width;
+    -- byte buffer for input from bitmap image data section in file
+    -- size is image size +1 to allow newline reading to end of file
+    type bmp_img_dat_type is array (0 to bmp_img_sz * 3) of byte_type;
 
     -- use 12-bit RGB output, which is specific to the FPGA board VGA output for now
-    type rgb_data_type is array (0 to bmp_img_sz-1) of std_logic_vector (VGA_BITS-1 downto 0);
+    subtype rgb444_type is std_logic_vector(VGA_BITS-1 downto 0);
+    type rgb_data_type is array (0 to bmp_img_sz - 1) of rgb444_type;
 
     type bmp_type is record
         dimensions : bmp_info_type;
@@ -98,34 +100,29 @@ architecture syn of rams_20c is
 
         -- read RGB image data from file
         read_index := 0;
-        while(not ENDFILE(bmp_file)) loop  -- until end of file is reached (todo ... 1 extra line)
+        while(not ENDFILE(bmp_file)) loop  -- note readline called past the end of file
             readline (bmp_file, RamFileLine);
             hread (RamFileLine, pix_data_buf(read_index));  -- read into tmp rgb byte buffer
             read_index := read_index + 1;
         end loop;
         file_close(bmp_file);
 
-        -- read rgb888 into array of rgb444 (VGA_BITS=12)
-        read_index := 0;
-        while ( read_index < (bmp_data.dimensions.width * bmp_data.dimensions.height)) loop
-            assert (read_index < rgb_data_type'length);
+        -- convert rgb888 to rgb444 (VGA_BITS=12)
+        for read_index in rgb_data_type'range loop
             bmp_data.pixel_data(read_index)(11 downto 8) := pix_data_buf(read_index * 3 + 2)(7 downto 4);
             bmp_data.pixel_data(read_index)(7 downto 4)  := pix_data_buf(read_index * 3 + 1)(7 downto 4);
             bmp_data.pixel_data(read_index)(3 downto 0)  := pix_data_buf(read_index * 3 + 0)(7 downto 4);
-            read_index := read_index + 1;
         end loop;
 
         return bmp_data;
     end function;
     --
-    -- declare and initialize the image ram
+    -- read bitmap file into image ram
     --
-    constant bmp_dat : bmp_type := InitRamFromFile("rgb.bmp.dat"); -- todo "FileName"
+    constant bmp_dat : bmp_type := InitRamFromFile(FileName);
     constant imgW : integer := bmp_dat.dimensions.width;
     constant imgH : integer := bmp_dat.dimensions.height;
     --
-
---    signal addr : UNSIGNED(ADDR_WIDTH-1 downto 0);
     signal addr : integer;
 
 begin
@@ -133,9 +130,9 @@ begin
     begin
         if (reset_n = '0') then
             dout <= (others => '0');
+            addr <= 0;
         elsif (clk'EVENT and clk = '1') then
-
---            if (row = imgRow0) and (col = imgCol0) then
+            --if (row = imgRow0) and (col = imgCol0) then -- didn't work right with addr as integer
             if (row < imgRow0) then
                 addr <= 0;
             end if;
@@ -148,5 +145,6 @@ begin
                 dout <= (others => '0');
             end if;
         end if;
+
     end process;
 end syn;

@@ -117,7 +117,7 @@ begin
     -- set RGB image from the bitmap image ROM
     u_img_rom: entity work.rams_20c
         generic map(
-            FileName => "rams_20c.data",
+            FileName => "rgb.bmp.dat",
             imgRow0 => 120,
             imgCol0 => 180
         )

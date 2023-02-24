@@ -18,10 +18,11 @@ fi
 echo  "$RGB_BIN -> $RGB_OUT"
 
 RGB_CONV=rgb.tmp.bmp
-#convert $RGB_BIN -flip $RGB_CONV
-RGB_CONV=$RGB_BIN  # tmp
+convert $RGB_BIN -flip $RGB_CONV
 
-od -v  -t x1 $RGB_BIN | cut -c 9- | tr '\ ' '\n' > $RGB_OUT
+RGB_CONV=$RGB_BIN  # tmp ... IM is changing bitmap layout PC bitmap, Windows 98/2000 and newer format
+
+od -v  -t x1 $RGB_CONV | cut -c 9- | tr '\ ' '\n' > $RGB_OUT
 
 ls -l $RGB_OUT
 
