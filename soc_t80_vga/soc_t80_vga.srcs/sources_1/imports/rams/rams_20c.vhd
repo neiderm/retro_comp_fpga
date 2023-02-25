@@ -124,22 +124,25 @@ architecture syn of rams_20c is
     constant imgH : integer := bmp_dat.dimensions.height;
     --
     signal addr : integer;
+    signal row_r : integer;
+    signal col_r : integer;
 
 begin
     process (clk, reset_n)
     begin
-        if (reset_n = '0') then
-            dout <= (others => '0');
-            addr <= 0;
-        elsif (clk'EVENT and clk = '1') then
+        if (clk'EVENT and clk = '1') then
+            row_r <= row;
+            col_r <= col;
             --if (row = imgRow0) and (col = imgCol0) then -- didn't work right with addr as integer
-            if (row < imgRow0) then
+            if (row_r < imgRow0) then
                 addr <= 0;
             end if;
 
-            if (row >= imgRow0) and (row < (imgRow0 + imgH)) and
-               (col >= imgCol0) and (col < (imgCol0 + imgW)) then
-                dout <= bmp_dat.pixel_data(addr);
+            dout <= bmp_dat.pixel_data(addr);
+                
+            if (row_r >= imgRow0) and (row_r < (imgRow0 + imgH)) and
+               (col_r >= imgCol0) and (col_r < (imgCol0 + imgW))
+            then
                 addr <= addr + 1;
             else
                 dout <= (others => '0');

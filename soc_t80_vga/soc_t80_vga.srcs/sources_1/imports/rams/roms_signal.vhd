@@ -49,27 +49,27 @@ architecture syn of roms_signal is
     ); 
 
     signal pix_addr : UNSIGNED(6 downto 0);
+    signal row_r : integer;
+    signal col_r : integer;
 
 begin
-    process (clk, reset_n)
+    process (clk)
     begin
+        if (clk'EVENT and clk = '1') then
 
-        if (reset_n = '0') then
-
-            data <= (others => '0');
-
-        elsif (clk'EVENT and clk = '1') then 
+            row_r <= row;
+            col_r <= col;
 
             if (en = '1') then 
-
-                if (row < imgRow0) then
+                if (row_r < imgRow0) then
                     pix_addr <= to_unsigned(0, pix_addr'length);
                 end if;
 
-                if (row >= imgRow0) and (row < (imgRow0 + imgH)) and 
-                   (col >= imgCol0) and (col < (imgCol0 + imgW)) then 
+                data <= ROM(to_integer(pix_addr));
 
-                    data <= ROM(to_integer(pix_addr));
+                if (row_r >= imgRow0) and (row_r < (imgRow0 + imgH)) and 
+                   (col_r >= imgCol0) and (col_r < (imgCol0 + imgW))
+                then 
                     pix_addr <= pix_addr + 1;
                 else 
                     data <= (others => '0');
