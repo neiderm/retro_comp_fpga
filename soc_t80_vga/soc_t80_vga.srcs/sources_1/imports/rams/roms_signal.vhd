@@ -14,7 +14,6 @@ entity roms_signal is
         imgRow0 : integer := 0;
         imgCol0 : integer := 0);
     port (
-        reset_n : in std_logic;
         clk  : in std_logic; 
         en   : in std_logic; 
         row  : in  integer;
@@ -49,6 +48,7 @@ architecture syn of roms_signal is
     ); 
 
     signal pix_addr : UNSIGNED(6 downto 0);
+    -- row and col are considered by the tool as inputs to data so must be registered to infer BRAM
     signal row_r : integer;
     signal col_r : integer;
 

@@ -31,7 +31,6 @@ ENTITY hw_image_generator IS
     pixels_y :  INTEGER := 240;   --row that first color will persist until
     pixels_x :  INTEGER := 320);  --column that first color will persist until
   PORT(
-    reset_in :  IN   STD_LOGIC;  -- added reset for RAMB synchronisation
     clk_in   :  IN   STD_LOGIC;
     disp_ena :  IN   STD_LOGIC;  --display enable ('1' = display time, '0' = blanking time)
     row      :  IN   INTEGER;    --row pixel coordinate
@@ -51,7 +50,6 @@ BEGIN
       imgCol0 => 160
     )
     port map (
-      reset_n => reset_in,
       clk  => clk_in,
       en   => disp_ena,
       row  => row,

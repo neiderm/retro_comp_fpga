@@ -18,7 +18,6 @@ entity rams_20c is
         VGA_BITS : integer := 12  -- VGA bus width
     );
     port (
-        reset_n : in std_logic;
         clk : in std_logic;
         row : in integer;
         col : in integer;
@@ -124,11 +123,12 @@ architecture syn of rams_20c is
     constant imgH : integer := bmp_dat.dimensions.height;
     --
     signal addr : integer;
+    -- row and col are considered by the tool as inputs to data so must be registered to infer BRAM
     signal row_r : integer;
     signal col_r : integer;
 
 begin
-    process (clk, reset_n)
+    process (clk)
     begin
         if (clk'EVENT and clk = '1') then
             row_r <= row;

@@ -122,7 +122,6 @@ begin
             imgCol0 => 180
         )
         port map (
-            reset_n => reset_l, -- reset required to synchronize RAMB
             clk     => clk_vga,
             row     => pixel_y,
             col     => pixel_x,
@@ -132,7 +131,6 @@ begin
     -- set RGB test pattern from the image ROM at a specific location on the screen
     u_bmp_img_gen : entity work.hw_image_generator
         port map(
-            reset_in => reset_l, -- reset required to synchronize RAMB
             clk_in   => clk_vga, -- pixel clock
             disp_ena => '1', -- video_on ... tbd, enable is applied to final mux output 
             row      => pixel_y,
