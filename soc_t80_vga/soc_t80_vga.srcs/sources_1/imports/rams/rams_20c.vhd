@@ -1,4 +1,4 @@
---
+ --
 -- Initializing Block RAM from external data file
 --
 -- Download: ftp://ftp.xilinx.com/pub/documentation/misc/xstug_examples.zip
@@ -12,8 +12,6 @@ use std.textio.all;
 
 entity rams_20c is
     generic (
-        imgRow0 : integer := 0;
-        imgCol0 : integer := 0;
         FileName : string := "rgb.bmp.dat"; -- override default file name in component instantiation 
         VGA_BITS : integer := 12  -- VGA bus width
     );
@@ -21,7 +19,9 @@ entity rams_20c is
         clk : in std_logic;
         row : in integer;
         col : in integer;
-        dout : out std_logic_vector(VGA_BITS-1 downto 0)
+        dout : out std_logic_vector(VGA_BITS-1 downto 0);
+        imgRow0 : in integer;
+        imgCol0 : in integer
     );
 end rams_20c;
 
@@ -133,6 +133,7 @@ begin
         if (clk'EVENT and clk = '1') then
             row_r <= row;
             col_r <= col;
+
             --if (row = imgRow0) and (col = imgCol0) then -- didn't work right with addr as integer
             if (row_r < imgRow0) then
                 addr <= 0;

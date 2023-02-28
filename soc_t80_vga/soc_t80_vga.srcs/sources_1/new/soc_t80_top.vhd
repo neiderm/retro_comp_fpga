@@ -53,20 +53,30 @@ architecture Behavioral of soc_t80_top is
     signal clk_cpu : STD_LOGIC;
 
     signal video_on : STD_LOGIC;
-    signal pixel_x, pixel_y : INTEGER;
-    signal vgss        : STD_LOGIC_VECTOR(1 downto 0); -- video generator source select to vgen mux
+    signal pixel_x  : INTEGER;
+    signal pixel_y  : INTEGER;
+    signal vgss     : STD_LOGIC_VECTOR(1 downto 0); -- video generator source select to vgen mux
+
+    signal hsync_out   : STD_LOGIC;
+    signal vsync_out   : STD_LOGIC;
 
     signal rgb_out_reg : STD_LOGIC_VECTOR(11 downto 0); -- register the RGB output signals 
     signal rgb_reg_0   : STD_LOGIC_VECTOR(11 downto 0);
     signal rgb_reg_1   : STD_LOGIC_VECTOR(11 downto 0);
     signal rgb_reg_2   : STD_LOGIC_VECTOR(11 downto 0);
+
+    signal image_y  : INTEGER := 0;
 begin
     --------------------------------------------------
-    -- drive test output pins to verify clock rates
+    -- drive output pins 
     --------------------------------------------------
+    -- external hsync/vsync outputs
+    Hsync <= hsync_out;
+    Vsync <= vsync_out;
+    --test signals to verify clock rates
     O_JB0 <= clk_vga;
     O_JC0 <= clk_cpu;
-
+    
     --------------------------------------------------
     -- invert the active high reset to active low 
     --------------------------------------------------
@@ -92,8 +102,8 @@ begin
         port map(
             pixel_clk => clk_vga, -- 25 Mhz
             reset_n => reset_l,
-            h_sync => Hsync, -- external hsync output
-            v_sync => Vsync, -- external vsync output
+            h_sync => hsync_out,
+            v_sync => vsync_out,
             disp_ena => video_on,
             column => pixel_x,
             row => pixel_y,
@@ -114,18 +124,30 @@ begin
     -- set RGB color on whole screen
     rgb_reg_2 <= sw(11 downto 0);
 
+    -- update y locatipn of imgage synchronized to vsync
+    vsync_process : process(vsync_out)
+    begin
+        if (vsync_out'EVENT and vsync_out = '0') then
+            image_y <= image_y - 1;
+            -- overcome the urge to use '<=' comparison condition and save 7 LUTs!
+            if image_y = 0 then
+                image_y <= 500; 
+            end if;
+        end if;
+    end process vsync_process;
+
     -- set RGB image from the bitmap image ROM
     u_img_rom: entity work.rams_20c
         generic map(
-            FileName => "rgb.bmp.dat",
-            imgRow0 => 120,
-            imgCol0 => 180
+            FileName => "rgb.bmp.dat"
         )
         port map (
             clk     => clk_vga,
             row     => pixel_y,
             col     => pixel_x,
-            dout    => rgb_reg_1
+            dout    => rgb_reg_1,
+            imgRow0 => 120,
+            imgCol0 => image_y
         );
 
     -- set RGB test pattern from the image ROM at a specific location on the screen
@@ -139,7 +161,7 @@ begin
             green    => rgb_reg_0(7 downto 4),
             blue     => rgb_reg_0(3 downto 0)
             );
-
+    
     --------------------------------------------------
     -- drive outputs, RGB, LED etc.
     --------------------------------------------------
@@ -152,7 +174,7 @@ begin
     vgaBlue   <= (rgb_out_reg(3 downto 0))  when video_on = '1' else (others => '0');
 
     -- LEDs
-    IO_process : process (reset_l, sw) --clk_vga
+    IO_process : process(reset_l, sw)
     begin
         if (reset_l = '0') then
             led(11 downto 0) <= (others => '0');
