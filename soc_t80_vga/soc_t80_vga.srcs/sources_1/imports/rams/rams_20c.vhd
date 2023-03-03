@@ -122,7 +122,7 @@ architecture syn of rams_20c is
     constant imgW : integer := bmp_dat.dimensions.width;
     constant imgH : integer := bmp_dat.dimensions.height;
     --
-    signal addr : integer;
+    signal addr : integer := 0; -- initialize (simulation error)
     -- row and col are considered by the tool as inputs to data so must be registered to infer BRAM
     signal row_r : integer;
     signal col_r : integer;
