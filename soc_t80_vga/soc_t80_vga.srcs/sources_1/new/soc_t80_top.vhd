@@ -66,6 +66,12 @@ architecture Behavioral of soc_t80_top is
     signal rgb_reg_2   : STD_LOGIC_VECTOR(11 downto 0);
 
     signal image_y  : INTEGER := 0;
+
+    -- cpu
+    signal cpu_addr         : std_logic_vector(15 downto 0);
+    signal program_rom_din  : std_logic_vector(7 downto 0);
+    signal rom_dout         : std_logic_vector(19 downto 0);
+
 begin
     --------------------------------------------------
     -- drive output pins 
@@ -94,6 +100,43 @@ begin
             o_clk_div8 => open,
             o_clk_div16 => clk_cpu
         );
+
+    --------------------------------------------------
+    -- Instantiate t80
+    --------------------------------------------------
+    u_cpu : entity work.T80s
+        port map(
+            RESET_n => reset_l,
+            CLK_n   => clk_cpu,
+            WAIT_n  => '1', -- cpu_wait_l,
+            INT_n   => '1', -- cpu_int_l,
+            NMI_n   => '1', -- cpu_nmi_l,
+            BUSRQ_n => '1', -- cpu_busrq_l,
+            M1_n    => open, -- cpu_m1_l,
+            MREQ_n  => open, -- cpu_mreq_l,
+            IORQ_n  => open, -- cpu_iorq_l,
+            RD_n    => open, -- cpu_rd_l,
+            WR_n    => open, -- cpu_wr_l,
+            --              RFSH_n  => cpu_rfsh_l,
+            --              HALT_n  => cpu_halt_l,
+            --              BUSAK_n => cpu_busak_l,
+            A       => cpu_addr,
+            DI      => program_rom_din, -- (others => '0'), -- cpu_data_in,
+            DO      => open -- cpu_data_out
+        );
+
+    --------------------------------------------------
+    -- internal program rom
+    --------------------------------------------------
+    u_program_rom : entity work.roms_constant
+      port map (
+        CLK         => clk_cpu, -- clk,
+        EN          => '1', -- cpu_rd_l ?
+        ADDR        => cpu_addr(6 downto 0), -- ADDR_BITS
+        DATA        => rom_dout -- program_rom_din, -- DATA_BITS
+        );
+
+    program_rom_din <=  rom_dout(7 downto 0);
 
     --------------------------------------------------
     -- video subsystem
