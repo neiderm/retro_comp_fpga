@@ -122,7 +122,9 @@ architecture syn of rams_20c is
     constant imgW : integer := bmp_dat.dimensions.width;
     constant imgH : integer := bmp_dat.dimensions.height;
     --
-    signal addr : integer := 0; -- initialize (simulation error)
+    -- signal addr : integer := 0; -- initialize (simulation error)
+    signal addr : UNSIGNED(31 downto 0); -- initializing integer causes a synthesize warning on BRAM 
+
     -- row and col are considered by the tool as inputs to data so must be registered to infer BRAM
     signal row_r : integer;
     signal col_r : integer;
@@ -136,10 +138,10 @@ begin
 
             --if (row = imgRow0) and (col = imgCol0) then -- didn't work right with addr as integer
             if (row_r < imgRow0) then
-                addr <= 0;
+                addr <= to_unsigned(0, addr'length);
             end if;
 
-            dout <= bmp_dat.pixel_data(addr);
+            dout <= bmp_dat.pixel_data(to_integer(addr));
                 
             if (row_r >= imgRow0) and (row_r < (imgRow0 + imgH)) and
                (col_r >= imgCol0) and (col_r < (imgCol0 + imgW))
