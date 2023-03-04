@@ -69,8 +69,11 @@ architecture Behavioral of soc_t80_top is
 
     -- cpu
     signal cpu_addr         : std_logic_vector(15 downto 0);
-    signal program_rom_din  : std_logic_vector(7 downto 0);
-    signal rom_dout         : std_logic_vector(19 downto 0);
+    signal cpu_data_out     : std_logic_vector(7 downto 0);
+    signal cpu_data_in      : std_logic_vector(7 downto 0);
+
+    signal program_rom_din  : std_logic_vector(19 downto 0); -- (7 downto 0)
+    signal rams_data_out    : std_logic_vector(7 downto 0);
 
 begin
     --------------------------------------------------
@@ -121,22 +124,36 @@ begin
             --              HALT_n  => cpu_halt_l,
             --              BUSAK_n => cpu_busak_l,
             A       => cpu_addr,
-            DI      => program_rom_din, -- (others => '0'), -- cpu_data_in,
-            DO      => open -- cpu_data_out
+            DI      => cpu_data_in,
+            DO      => cpu_data_out
         );
+
+
+    cpu_data_in <=  program_rom_din(7 downto 0);
+
+    --------------------------------------------------
+    -- work RAM
+    --------------------------------------------------
+  u_rams : entity work.rams_08
+    port map (
+      a    => cpu_addr(5 downto 0),
+      di   => (others => '0'), -- cpu_data_out, -- cpu only source of ram data
+      do   => open, -- rams_data_out,
+      we   => '0',  -- not(mem_wr_l or work_ram_cs_l), -- write enable, active high
+      en   => '1',                                     -- chip enable, active high
+      clk  => clk_cpu
+      );
 
     --------------------------------------------------
     -- internal program rom
     --------------------------------------------------
     u_program_rom : entity work.roms_constant
       port map (
-        CLK         => clk_cpu, -- clk,
+        CLK         => clk_cpu,
         EN          => '1', -- cpu_rd_l ?
         ADDR        => cpu_addr(6 downto 0), -- ADDR_BITS
-        DATA        => rom_dout -- program_rom_din, -- DATA_BITS
+        DATA        => program_rom_din
         );
-
-    program_rom_din <=  rom_dout(7 downto 0);
 
     --------------------------------------------------
     -- video subsystem
