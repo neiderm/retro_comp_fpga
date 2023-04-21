@@ -160,3 +160,13 @@ set_property CFGBVS VCCO [current_design]
 set_property BITSTREAM.GENERAL.COMPRESS TRUE [current_design]
 set_property BITSTREAM.CONFIG.CONFIGRATE 33 [current_design]
 set_property CONFIG_MODE SPIx4 [current_design]
+
+# generated clock constraints for VGA Sync and CPU clocks from clock divider 
+create_generated_clock -name cpu_clock -source [get_ports clk] -divide_by 16 [get_pins {u_clocks/clk_divider_reg[1]/Q}]
+create_generated_clock -name vga_clock -source [get_pins {u_clocks/clk_divider_reg[1]/Q}] -divide_by 4 [get_pins u_vga_control/v_sync_reg/Q]
+
+# false path for reset signal from external button input
+set_false_path -from [get_ports reset] -to [get_clocks sys_clk_pin]
+
+# false path for clock divider output to external test pin
+set_false_path -from [get_clocks sys_clk_pin] -to [get_ports O_JC0]
